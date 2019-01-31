@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Serilog;
 using Itinero;
+using Itinero.LocalGeo;
 using Itinero.Logging;
 using Itinero.VectorTiles;
 using Itinero.VectorTiles.Layers;
@@ -46,68 +48,121 @@ namespace Anyways.VectorTiles.CycleNetworks
                 .WriteTo.Console()
                 .CreateLogger();
             
+            // get parameters.
+            var outputPath = "tiles";
+
             // load routerdb.
             var routerDb = RouterDb.Deserialize(File.OpenRead("belgium.routerdb"));
-            
-            // write vector tiles.
-            var bbox = routerDb.CalculateBoundingBox();
-            
+
+            // build configuration.
+            const string cycleNodeNetworkId = "cyclenodenetwork";
+            const string cycleNodeId = "cyclenodes";
             var config = new VectorTileConfig()
             {
+                EdgeLayerConfigs = new List<EdgeLayerConfig>()
+                { 
+                    new EdgeLayerConfig()
+                    {
+                        Name = cycleNodeNetworkId,
+                        GetAttributesFunc = (edgeId, zoom) =>
+                        {
+                            var attributes = routerDb.GetEdgeAttributes(edgeId);
+                            if (attributes == null) return null;
+                                    
+                            var ok = attributes.Any(a => a.Key == "cyclenetwork");
+                            if (!ok)
+                            {
+                                return null;
+                            }
+                            return attributes;
+                        }
+                    }
+                },
                 VertexLayerConfigs = new List<VertexLayerConfig>()
                 {
                     new VertexLayerConfig()
                     {
-                        Name = "cyclenodes",
-                        GetAttributesFunc = (vertex) => routerDb.GetVertexAttributes(vertex),
-                        GetLocationFunc = (vertex) => routerDb.Network.GetVertex(vertex),
-                        IncludeFunc = (vertex) =>
+                        Name = cycleNodeId,
+                        GetAttributesFunc = (vertex, zoom) =>
                         {
-                            var vertexMeta = routerDb.GetVertexAttributes(vertex);
-                            foreach (var a in vertexMeta)
+                            var attributes = routerDb.GetVertexAttributes(vertex);
+                            var ok = attributes.Any(a => a.Key == "rcn_ref");
+                            if (!ok)
                             {
-                                if (a.Key == "rcn_ref")
-                                {
-                                    return true;
-                                }
+                                return null;
                             }
 
-                            return false;
+                            return attributes;
                         }
                     }
                 }
             };
 
-            
             // loop over all tiles in the bounding box.
             var minZoom = 9;
             var maxZoom = 14;
-
-            for (var z = minZoom; z <= maxZoom; z++)
+            var vectorTiles = routerDb.ExtractTiles(config, minZoom, maxZoom);
+            Box? box = null;
+            foreach (var vectorTile in vectorTiles)
             {
-                var topLeftTile = Tile.CreateAroundLocation(bbox.MaxLat, bbox.MinLon, z);
-                var bottomRightTile = Tile.CreateAroundLocation(bbox.MinLat, bbox.MaxLon, z);
+                if (vectorTile.data.IsEmpty) continue;
 
-                for (var x = topLeftTile.X; x <= bottomRightTile.X; x++)
-                for (var y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
+                var t = vectorTile.tile;
+                
+                Log.Information("Writing tile: {0}", t.ToInvariantString());
+                var fileInfo = new FileInfo(Path.Combine(outputPath, t.Zoom.ToString(), t.X.ToString(), $"{t.Y}.mvt"));
+                if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
                 {
-                    var t = new Tile(x, y, z);
-                    
-                    var vectorTile = routerDb.ExtractTile(t.Id, config);
-                    if (vectorTile.IsEmpty) continue;
-                    
-                    Log.Information("Writing tile: {0}", t.ToInvariantString());
-                    var fileInfo = new FileInfo(Path.Combine("tiles", t.Zoom.ToString(), t.X.ToString(), $"{t.Y}.mvt"));
-                    if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
-                    {
-                        fileInfo.Directory.Create();
-                    }
-                    using (var stream = fileInfo.Open(FileMode.Create))
-                    {
-                        Itinero.VectorTiles.Mapbox.MapboxTileWriter.Write(vectorTile, stream);
-                    }
+                    fileInfo.Directory.Create();
+                }
+
+                using (var stream = fileInfo.Open(FileMode.Create))
+                {
+                    Itinero.VectorTiles.Mapbox.MapboxTileWriter.Write(vectorTile.data, stream);
+                }
+
+                if (box == null)
+                {
+                    box = vectorTile.tile.Box();
+                }
+                else
+                {
+                    box = box.Value.ExpandWith(vectorTile.tile);
                 }
             }
+
+            if (!box.HasValue)
+            { // no data was written.
+                return;
+            }
+            
+            // build meta.
+            var vectorTileSource = new VectorTileSource()
+            {
+                name = "cyclenodenetworks",
+                bounds = new double[]{box.Value.MinLat, box.Value.MinLon, box.Value.MaxLat, box.Value.MaxLon},
+                maxzoom = maxZoom,
+                minzoom = minZoom,
+                description = "All info about the cycling node networks.",
+                vector_layers = new []
+                {
+                    new VectorLayer()
+                    {
+                        maxzoom = maxZoom,
+                        minzoom = minZoom,
+                        description = "The node-based cycle network",
+                        id = cycleNodeNetworkId
+                    },
+                    new VectorLayer()
+                    {
+                        maxzoom = maxZoom,
+                        minzoom = minZoom,
+                        description = "The nodes in the cycle network",
+                        id = cycleNodeId
+                    }
+                }
+            };
+            File.WriteAllText(Path.Combine(outputPath, "tile.json"), Newtonsoft.Json.JsonConvert.SerializeObject(vectorTileSource));
         }
     }
 }
