@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Serilog;
 using Itinero;
 using Itinero.LocalGeo;
@@ -49,13 +50,13 @@ namespace Anyways.VectorTiles.CycleNetworks
                 .CreateLogger();
             
             // get parameters.
-            var outputPath = "tiles";
+            var outputPath = "cyclenetworks";
 
             // load routerdb.
             var routerDb = RouterDb.Deserialize(File.OpenRead("belgium.routerdb"));
 
             // build configuration.
-            const string cycleNodeNetworkId = "cyclenodenetwork";
+            const string cycleNodeNetworkId = "cyclenetwork";
             const string cycleNodeId = "cyclenodes";
             var config = new VectorTileConfig()
             {
@@ -99,16 +100,17 @@ namespace Anyways.VectorTiles.CycleNetworks
             };
 
             // loop over all tiles in the bounding box.
-            var minZoom = 9;
+            var minZoom = 6;
             var maxZoom = 14;
             var vectorTiles = routerDb.ExtractTiles(config, minZoom, maxZoom);
             Box? box = null;
+            //Parallel.ForEach(vectorTiles, (vectorTile) =>
             foreach (var vectorTile in vectorTiles)
             {
                 if (vectorTile.data.IsEmpty) continue;
 
                 var t = vectorTile.tile;
-                
+
                 Log.Information("Writing tile: {0}", t.ToInvariantString());
                 var fileInfo = new FileInfo(Path.Combine(outputPath, t.Zoom.ToString(), t.X.ToString(), $"{t.Y}.mvt"));
                 if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
@@ -129,7 +131,7 @@ namespace Anyways.VectorTiles.CycleNetworks
                 {
                     box = box.Value.ExpandWith(vectorTile.tile);
                 }
-            }
+            };
 
             if (!box.HasValue)
             { // no data was written.
@@ -139,8 +141,10 @@ namespace Anyways.VectorTiles.CycleNetworks
             // build meta.
             var vectorTileSource = new VectorTileSource()
             {
-                name = "cyclenodenetworks",
-                bounds = new double[]{box.Value.MinLat, box.Value.MinLon, box.Value.MaxLat, box.Value.MaxLon},
+                id="cyclenetworks",
+                basename = "cyclenetworks",
+                name = "cyclenetworks",
+                bounds = new double[]{box.Value.MinLon, box.Value.MinLat, box.Value.MaxLon, box.Value.MaxLat},
                 maxzoom = maxZoom,
                 minzoom = minZoom,
                 description = "All info about the cycling node networks.",
@@ -162,7 +166,7 @@ namespace Anyways.VectorTiles.CycleNetworks
                     }
                 }
             };
-            File.WriteAllText(Path.Combine(outputPath, "tile.json"), Newtonsoft.Json.JsonConvert.SerializeObject(vectorTileSource));
+            File.WriteAllText(Path.Combine(outputPath, "mvt.json"), Newtonsoft.Json.JsonConvert.SerializeObject(vectorTileSource));
         }
     }
 }
