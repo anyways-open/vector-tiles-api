@@ -16,7 +16,7 @@ namespace Anyways.VectorTiles.CycleNetworks
     {
         static void Main(string[] args)
         {
-            Itinero.Logging.Logger.LogAction = (o, level, message, parameters) =>
+            Logger.LogAction = (o, level, message, parameters) =>
             {
                 if (level == TraceEventType.Verbose.ToString().ToLower())
                 {

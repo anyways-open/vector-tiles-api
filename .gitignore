@@ -47,3 +47,4 @@ packages/*
 
 **/logs/*
 **/*.mvt
+**/mvt.json
