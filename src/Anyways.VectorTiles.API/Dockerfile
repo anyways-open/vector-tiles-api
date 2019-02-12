@@ -4,7 +4,7 @@
 ############################################################
 
 # Set the base image to Ubuntu
-FROM microsoft/dotnet:2.2-aspnetcore
+FROM microsoft/dotnet:2.2-sdk
 
 # File Author / Maintainer
 MAINTAINER Anyways BVBA
@@ -28,4 +28,4 @@ EXPOSE 5000
 
 # Set the default command to execute when creating a new container
 WORKDIR /var/app/
-CMD ["dotnet", "Anyways.VectorTile.API.dll"]
+ENTRYPOINT ["dotnet", "Anyways.VectorTile.API.dll"]
