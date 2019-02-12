@@ -25,7 +25,6 @@ namespace Anyways.VectorTiles.API.Controllers
             };
                 
             return new JsonResult(mvt);
-
         }
 
         [HttpGet("{tileSet}/{z}/{x}/{y}.mvt")]
