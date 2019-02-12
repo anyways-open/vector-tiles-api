@@ -4,7 +4,7 @@
 ############################################################
 
 # Set the base image to Ubuntu
-FROM microsoft/dotnet:2.2-aspnetcore-runtime
+FROM microsoft/dotnet:2.1-aspnetcore-runtime
 
 # File Author / Maintainer
 MAINTAINER Anyways BVBA
@@ -13,7 +13,7 @@ MAINTAINER Anyways BVBA
 RUN mkdir /var/app
 RUN mkdir /var/app/data
 RUN mkdir /var/app/logs
-COPY ./bin/Release/netcoreapp2.2/linux-x64/publish /var/app
+COPY ./bin/Release/netcoreapp2.1/linux-x64/publish /var/app
 COPY appsettings.Docker.json /var/app/appsettings.json
 
 # couple data folder data volume.
