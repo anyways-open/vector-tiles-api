@@ -18,7 +18,7 @@ namespace Anyways.VectorTiles.API.Controllers
             var mvt = Newtonsoft.Json.JsonConvert.DeserializeObject<VectorTileSource>(
                 System.IO.File.ReadAllText(tileFileInfo.FullName));
 
-            var url = $"{this.Request.Scheme}://{this.Request.Host}/{this.Request.PathBase}{tileSet}/{{z}}/{{x}}/{{y}}.mvt";
+            var url = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/{tileSet}/{{z}}/{{x}}/{{y}}.mvt";
             mvt.tiles = new[]
             {
                 url
