@@ -1,6 +1,6 @@
 # vector-tiles-api
 
-[![Build status](https://build.anyways.eu/app/rest/builds/buildType:(id:anyways_Core_VectorTilesApi)/statusIcon](https://build.anyways.eu/viewType.html?buildTypeId=anyways_Core_VectorTilesApi)  
+[![Build status](https://build.anyways.eu/app/rest/builds/buildType:(id:anyways_Core_VectorTilesApi)/statusIcon)](https://build.anyways.eu/viewType.html?buildTypeId=anyways_Core_VectorTilesApi)  
 
 Status: **PRODUCTION**
 
