@@ -7,8 +7,8 @@
   "description": "Contains the cyclenetworks of Genk",
   "layers": [
     {
-      "id": "cyclenetwork",
-      "description": "The actual edges in the network",
+      "id": "cyclenetwork-genk",
+      "description": "The routes in the Genk network",
       "type": "way",
       "filter": {
         "and": [
