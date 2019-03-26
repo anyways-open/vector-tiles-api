@@ -1,0 +1,26 @@
+{
+  "minzoom": 6,
+  "maxzoom": 14,
+  "name": "cyclenetworks-genk",
+  "id": "cyclenetworks-genk",
+  "basename": "cyclenetworks-genk",
+  "description": "Contains the cyclenetworks of Genk",
+  "layers": [
+    {
+      "id": "cyclenetwork",
+      "description": "The actual edges in the network",
+      "type": "way",
+      "filter": {
+        "and": [
+          {
+            "key": "cyclenetwork"
+          },
+          {
+            "key": "operator",
+            "value": "Stad Genk"
+          }
+        ]
+      }
+    }
+  ]
+}

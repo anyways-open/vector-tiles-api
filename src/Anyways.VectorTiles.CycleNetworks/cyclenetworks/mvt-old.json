@@ -1,0 +1,35 @@
+{
+  "tiles": [
+    "https://localhost:5001/cyclenetworks/{z}/{x}/{y}.mvt"
+  ],
+  "minzoom": 6,
+  "maxzoom": 14,
+  "bounds": [
+    0.0,
+    48.922500610351562,
+    11.25,
+    52.482780456542969
+  ],
+  "name": "cyclenetworks",
+  "description": "All info about the cycling node networks.",
+  "attribution": "<a href=\"http://www.openstreetmap.org/about/\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+  "format": "pbf",
+  "id": "cyclenetworks",
+  "basename": "cyclenetworks",
+  "vector_layers": [
+    {
+      "maxzoom": 14,
+      "minzoom": 6,
+      "id": "cyclenetwork",
+      "description": "The node-based cycle network"
+    },
+    {
+      "maxzoom": 14,
+      "minzoom": 6,
+      "id": "cyclenodes",
+      "description": "The nodes in the cycle network"
+    }
+  ],
+  "version": "1.0",
+  "tilejson": "2.0.0"
+}

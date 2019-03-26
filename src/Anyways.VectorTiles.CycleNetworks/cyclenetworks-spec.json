@@ -1,0 +1,41 @@
+{
+  "about:this": "This file specifies which elements should be included into a vector tile layer. It can be read with IDP. Most of the data here will end up into the relevant geojson",
+  
+  "minzoom": 6,
+  "maxzoom": 14,
+  "name": "cyclenetworks",
+  "id": "cyclenetworks",
+  "basename": "cyclenetworks",
+  "description": "All info about the cycling node networks.",
+  "layers": [
+    {
+      "id": "cyclenodes",
+      "description": "The central cycling nodes",
+      "about:type": "THis layer either contains 'node's or 'way's",
+      "type": "node",
+      "about:filter": "Applies the given predicate respectively each node or way and retains only those for which it holds.The most basic expression to filter states which key (and eventually) which value an edge/node should have. A simple predicate is {'key':'someKey'} or {'key':'someKey', 'value':'someValue'}. These can be combined with `and: [ <expr>, <expr>, ... ] `, `or: [ <expr>, <expr>, ... ]` and `not: <expr>`.",
+      "filter": {
+        "key": "network"
+      }
+    },
+    {
+      "id": "cyclenetwork",
+      "description": "The actual edges in the network",
+      "type": "way",
+      
+      "filter": {
+        "and": [
+          {
+            "key": "cyclenetwork"
+          },
+          {
+            "not": {
+              "key": "state",
+              "value": "proposed"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
