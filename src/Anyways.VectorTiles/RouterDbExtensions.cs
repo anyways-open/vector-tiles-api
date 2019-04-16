@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Itinero;
 using Itinero.LocalGeo;
 using Itinero.VectorTiles;

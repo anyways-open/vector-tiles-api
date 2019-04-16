@@ -6,9 +6,17 @@ Status: **PRODUCTION**
 
 The vector tiles microservice.
 
-This microservice has the responsability to serve mapbox vector tiles reusable in different anyways applications. This API is only to used for relatively static data derived from OSM data or other sources.
+This microservice has the responsability to generate and to serve mapbox vector tiles, reusable in different anyways applications. This API is only to used for relatively static data derived from OSM data or other sources. The prime example is cycling networks - which only update sporadically.
 
-The included console project can be used to extract vector tiles from a router db, using a specifications-json. (Note that this functionality will move to IDP one day). 
+## Architecture
+
+### Anyways.Vectortiles
+
+Only contains a few data structures - nearly empty.
+
+### Anyways.VectorTiles.CycleNetworks
+
+The console project used to generate vector tiles based on a routerdb. For this, a specifications-json is used. (Note that this functionality will move to another project one day). 
 
 To create a vector tile set:
 
@@ -16,6 +24,10 @@ To create a vector tile set:
 cd src/Anyways.VectorTiles.CycleNetworks/
 dotnet run <path to routerdb> <path to specification of the vector tile> <output directory>
 ````
+
+### Anyways.VectorTiles.API
+
+Bland ASP.NET project with an http-server to serve the right vector tiles when queried.
 
 ## Deployment
 

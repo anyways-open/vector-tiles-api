@@ -14,6 +14,7 @@
       "about:type": "THis layer either contains 'node's or 'way's",
       "type": "node",
       "about:filter": "Applies the given predicate respectively each node or way and retains only those for which it holds.The most basic expression to filter states which key (and eventually) which value an edge/node should have. A simple predicate is {'key':'someKey'} or {'key':'someKey', 'value':'someValue'}. These can be combined with `and: [ <expr>, <expr>, ... ] `, `or: [ <expr>, <expr>, ... ]` and `not: <expr>`.",
+      "about:filter:note": "Keep in mind that the tags might have been rewritten by the 'profile.lua'-file.",
       "filter": {
         "key": "network"
       }
