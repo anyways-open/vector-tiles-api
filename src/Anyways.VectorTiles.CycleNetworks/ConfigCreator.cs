@@ -6,7 +6,6 @@ using Itinero.LocalGeo;
 using Itinero.VectorTiles;
 using Itinero.VectorTiles.Layers;
 using Newtonsoft.Json.Linq;
-using Serilog;
 using Attribute = Itinero.Attributes.Attribute;
 
 namespace Anyways.VectorTiles.CycleNetworks
@@ -30,7 +29,7 @@ namespace Anyways.VectorTiles.CycleNetworks
                     throw new FormatException("Layers contains a non-object value");
                 }
 
-                layers.Add(new VectorLayer()
+                layers.Add(new VectorLayer
                 {
                     maxzoom = maxZoom,
                     minzoom = minZoom,
@@ -40,7 +39,7 @@ namespace Anyways.VectorTiles.CycleNetworks
             }
 
 
-            return new VectorTileSource()
+            return new VectorTileSource
             {
                 id = obj.GetFlatValue("id"),
                 basename = obj.GetFlatValue("basename"),
@@ -87,7 +86,7 @@ namespace Anyways.VectorTiles.CycleNetworks
                 }
             }
 
-            var config = new VectorTileConfig()
+            var config = new VectorTileConfig
             {
                 EdgeLayerConfigs = edgeLayerConfigs,
                 VertexLayerConfigs = vertexLayerConfigs
@@ -105,7 +104,7 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             var filter = j["filter"].CreatePredicate();
 
-            return new VertexLayerConfig()
+            return new VertexLayerConfig
             {
                 Name = j.GetFlatValue("id"),
                 GetAttributesFunc = (edgeId, zoom) =>
@@ -128,7 +127,7 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             var filter = j["filter"].CreatePredicate();
 
-            return new EdgeLayerConfig()
+            return new EdgeLayerConfig
             {
                 Name = j.GetFlatValue("id"),
                 GetAttributesFunc = (edgeId, zoom) =>

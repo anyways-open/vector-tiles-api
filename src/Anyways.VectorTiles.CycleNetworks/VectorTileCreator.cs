@@ -35,20 +35,23 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             for (var z = minZoom; z <= maxZoom; z++)
             {
-                var minTile = Tile.CreateAroundLocation(bbox.MinLat, bbox.MinLon, z);
-                var maxTile = Tile.CreateAroundLocation(bbox.MaxLat, bbox.MaxLon, z);
+                // Pick the smallest available bounding box
+                var smallestBox = box ?? bbox;
+                box = null;
+                var minTile = Tile.CreateAroundLocation(smallestBox.MinLat, smallestBox.MinLon, z);
+                var maxTile = Tile.CreateAroundLocation(smallestBox.MaxLat, smallestBox.MaxLon, z);
                 Log.Information(
                     $"Creating tiles for zoomlevel {z} ({minZoom} --> {maxZoom}). x-ranges are {minTile.X} --> {maxTile.X}; y-ranges are {minTile.Y} --> {maxTile.Y}");
 
                 for (var x = minTile.X; x <= maxTile.X; x++)
                 {
-                    for (var y = minTile.Y; y <= maxTile.Y; y++)
+                    for (var y = maxTile.Y; y <= minTile.Y; y++) // Note: minTile and MaxTile are reversed here - seems like the tiles count in the opposite directions then latitude does
                     {
                         var t = new Tile(x, y, z);
 
                         Log.Information(
                             $"Generating tile X: {1 + x - minTile.X}/{1 + maxTile.X - minTile.X};" +
-                            $" {1 + y - minTile.Y}/{1 + maxTile.Y - minTile.Y} (zoom {z} out of {maxZoom})");
+                            $" {1 + y - maxTile.Y}/{1 + minTile.Y - maxTile.Y} (zoom {z} out of {maxZoom})");
                         var data = routerDb.ExtractTile(t.Id, config);
                         if (data.IsEmpty)
                         {
@@ -67,6 +70,7 @@ namespace Anyways.VectorTiles.CycleNetworks
                     // No data written at all. Fall out of the loop
                     break;
                 }
+
             }
 
             if (box == null)
