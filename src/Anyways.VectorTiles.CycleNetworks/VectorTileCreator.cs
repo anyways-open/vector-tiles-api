@@ -33,30 +33,33 @@ namespace Anyways.VectorTiles.CycleNetworks
             Box? box = null;
 
 
-            for (var z = minZoom; z < maxZoom; z++)
+            for (var z = minZoom; z <= maxZoom; z++)
             {
-                Log.Information($"Creating tiles for zoomlevel {z} ({minZoom} --> {maxZoom})");
                 var minTile = Tile.CreateAroundLocation(bbox.MinLat, bbox.MinLon, z);
                 var maxTile = Tile.CreateAroundLocation(bbox.MaxLat, bbox.MaxLon, z);
+                Log.Information(
+                    $"Creating tiles for zoomlevel {z} ({minZoom} --> {maxZoom}). x-ranges are {minTile.X} --> {maxTile.X}; y-ranges are {minTile.Y} --> {maxTile.Y}");
 
                 for (var x = minTile.X; x <= maxTile.X; x++)
-                for (var y = minTile.Y; y <= maxTile.Y; y++)
                 {
-                    var t = new Tile(x, y, z);
-
-                    var data = routerDb.ExtractTile(t.Id, config);
-                    Log.Information(
-                        $"Generating tile X: {1 + x - minTile.X}/{1 + maxTile.X - minTile.X};" +
-                        $" {1 + y - minTile.Y}/{1 + maxTile.Y - minTile.Y}");
-                    if (data.IsEmpty)
+                    for (var y = minTile.Y; y <= maxTile.Y; y++)
                     {
-                        Log.Information("Tile is empty");
-                        continue;
+                        var t = new Tile(x, y, z);
+
+                        Log.Information(
+                            $"Generating tile X: {1 + x - minTile.X}/{1 + maxTile.X - minTile.X};" +
+                            $" {1 + y - minTile.Y}/{1 + maxTile.Y - minTile.Y} (zoom {z} out of {maxZoom})");
+                        var data = routerDb.ExtractTile(t.Id, config);
+                        if (data.IsEmpty)
+                        {
+                            Log.Information("Tile is empty");
+                            continue;
+                        }
+
+
+                        CreateAndWriteTile(t, data, outputDirectory);
+                        box = box?.ExpandWith(t) ?? t.Box();
                     }
-
-
-                    CreateAndWriteTile(t, data, outputDirectory);
-                    box = box?.ExpandWith(t) ?? t.Box();
                 }
 
                 if (box == null)
