@@ -36,7 +36,13 @@
             }
           }
         ]
-      }
+      },
+      "about:split-tags": "When processing relations, tags of two similar relations might get lumped together (e.g. 'refs' of routes) might become ref=2,3. The tags below will be inspected for such tags and duplicated in the data",
+      "split-tags":[
+        "ref",
+        "cyclecolour",
+        "name"
+      ]
     }
   ]
 }

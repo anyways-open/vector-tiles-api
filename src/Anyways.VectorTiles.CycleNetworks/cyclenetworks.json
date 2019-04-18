@@ -20,7 +20,12 @@
             "value": "Stad Genk"
           }
         ]
-      }
+      },
+      "split-tags":[
+        "ref",
+        "cyclecolour",
+        "name"
+      ]
     },
     {
       "id": "cyclenetwork",
@@ -46,8 +51,13 @@
       "description": "The central cycling nodes",
       "type": "node",
       "filter": {
-        "key": "cyclenetwork",
-      }
+        "key": "rcn-ref",
+      },
+      "split-tags":[
+        "ref",
+        "cyclecolour",
+        "name"
+      ]
     }
   ]
 }

@@ -6,6 +6,7 @@ using Itinero.LocalGeo;
 using Itinero.VectorTiles;
 using Itinero.VectorTiles.Layers;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using Attribute = Itinero.Attributes.Attribute;
 
 namespace Anyways.VectorTiles.CycleNetworks
@@ -13,8 +14,8 @@ namespace Anyways.VectorTiles.CycleNetworks
     public static class ConfigCreator
     {
         /// <summary>
-        /// Creates a JSON-file which can be hosted with metadata.
-        /// The term 'source' is very confusing here!
+        ///     Creates a JSON-file which can be hosted with metadata.
+        ///     The term 'source' is very confusing here!
         /// </summary>
         /// <returns></returns>
         public static VectorTileSource CreateVectorSourceFor(this JObject obj,
@@ -24,10 +25,7 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             foreach (var l in (JArray) obj["layers"])
             {
-                if (!(l is JObject layer))
-                {
-                    throw new FormatException("Layers contains a non-object value");
-                }
+                if (!(l is JObject layer)) throw new FormatException("Layers contains a non-object value");
 
                 layers.Add(new VectorLayer
                 {
@@ -53,7 +51,7 @@ namespace Anyways.VectorTiles.CycleNetworks
         }
 
         /// <summary>
-        /// Creates a VectorTileConfiguration based on the routerdb, ready to create all the actual tiles
+        ///     Creates a VectorTileConfiguration based on the routerdb, ready to create all the actual tiles
         /// </summary>
         /// <param name="routerDb"></param>
         /// <param name="obj"></param>
@@ -66,30 +64,21 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             foreach (var l in (JArray) obj["layers"])
             {
-                if (!(l is JObject layer))
-                {
-                    throw new FormatException("Layers contains a non-object value");
-                }
+                if (!(l is JObject layer)) throw new FormatException("Layers contains a non-object value");
 
                 if (layer.GetFlatValue("type").Equals("node"))
-                {
                     vertexLayerConfigs.Add(layer.CreateVertexLayerConfig(routerDb));
-                }
                 else if (layer.GetFlatValue("type").Equals("way"))
-                {
                     edgeLayerConfigs.Add(layer.CreateEdgeLayerConfig(routerDb));
-                }
                 else
-                {
                     throw new ArgumentException(
                         $"Invalid value for 'type' in layer: should be 'node' or 'way'\nError in layer: {layer}");
-                }
             }
 
             var config = new VectorTileConfig
             {
                 EdgeLayerConfigs = edgeLayerConfigs,
-                VertexLayerConfigs = vertexLayerConfigs
+                VertexLayerConfigs = vertexLayerConfigs,
             };
 
             return config;
@@ -98,9 +87,7 @@ namespace Anyways.VectorTiles.CycleNetworks
         private static VertexLayerConfig CreateVertexLayerConfig(this JObject j, RouterDb routerDb)
         {
             if (j["type"].ToString().ToLower() != "node")
-            {
                 throw new FormatException("Expected layer should have type 'way'");
-            }
 
             var filter = j["filter"].CreatePredicate();
 
@@ -114,16 +101,15 @@ namespace Anyways.VectorTiles.CycleNetworks
                     // ReSharper disable once ConvertIfStatementToReturnStatement
                     if (!filter(attributes)) return null;
                     return attributes;
-                }
+                },
+                PostProcess = j.CreatePostProcessor()
             };
         }
 
         private static EdgeLayerConfig CreateEdgeLayerConfig(this JObject j, RouterDb routerDb)
         {
             if (j["type"].ToString().ToLower() != "way")
-            {
                 throw new FormatException("Expected layer should have type 'node'");
-            }
 
             var filter = j["filter"].CreatePredicate();
 
@@ -138,26 +124,97 @@ namespace Anyways.VectorTiles.CycleNetworks
                     // ReSharper disable once ConvertIfStatementToReturnStatement
                     if (!filter(attributes)) return null;
                     return attributes;
+                },
+                PostProcess = j.CreatePostProcessor()
+            };
+        }
+
+
+        private static Func<IEnumerable<Attribute>, IEnumerable<IEnumerable<Attribute>>> CreatePostProcessor(
+            this JToken config)
+        {
+            if (config["split-tags"] == null)
+            {
+                return null;
+            }
+
+
+            var tagsToSplit = new List<string>();
+            foreach (var tagToSplit in config["split-tags"].Children())
+            {
+                tagsToSplit.Add(tagToSplit.ToString());
+            }
+
+            if (tagsToSplit.Count == 0)
+            {
+                return null;
+            }
+
+            return attrs =>
+            {
+                var splittedTags = new List<List<Attribute>>();
+                var restingTags = new List<Attribute>();
+
+                foreach (var attr in attrs)
+                {
+                    if (tagsToSplit.Contains(attr.Key))
+                    {
+                        var splitted = new List<Attribute>();
+                        var values = attr.Value.Split(',');
+                        foreach (var value in values)
+                        {
+                            splitted.Add(new Attribute(attr.Key, value));
+                        }
+
+                        splittedTags.Add(splitted);
+                    }
+                    else
+                    {
+                        restingTags.Add(attr);
+                    }
                 }
+
+                if (splittedTags.Count == 0)
+                {
+                    return new List<IEnumerable<Attribute>> {restingTags};
+                }
+
+                var newAttributes = new List<List<Attribute>>();
+                var maxLength = splittedTags.Select(ls => ls.Count).Max();
+                for (var i = 0; i < maxLength; i++)
+                {
+                    var attrSet = new List<Attribute>();
+
+                    foreach (var tag in restingTags)
+                    {
+                        attrSet.Add(tag);
+                    }
+
+                    foreach (var splittedTag in splittedTags)
+                    {
+                        if (splittedTag.Count > i)
+                        {
+                            attrSet.Add(splittedTag[i]);
+                        }
+                    }
+
+                    newAttributes.Add(attrSet);
+                }
+
+                return newAttributes;
             };
         }
 
         public static string GetFlatValue(this JObject j, string field)
         {
-            if (!(j[field] is JValue))
-            {
-                throw new FormatException($"Field {field} should be a value");
-            }
+            if (!(j[field] is JValue)) throw new FormatException($"Field {field} should be a value");
 
             return j[field].ToString();
         }
 
         private static Predicate<IEnumerable<Attribute>> CreatePredicate(this JToken obj)
         {
-            if (!(obj is JObject j))
-            {
-                throw new FormatException("A filter should be an expression");
-            }
+            if (!(obj is JObject j)) throw new FormatException("A filter should be an expression");
 
             return j.CreatePredicate();
         }
@@ -168,22 +225,16 @@ namespace Anyways.VectorTiles.CycleNetworks
             {
                 var allowedValues = new List<string>();
                 if (obj["value"] is JArray arr)
-                {
                     foreach (var v in arr)
                     {
                         if (!(v is JValue))
-                        {
                             throw new FormatException(
                                 "The 'value' field should either contain values or a single value");
-                        }
 
                         allowedValues.Add(v.ToString());
                     }
-                }
                 else
-                {
                     allowedValues.Add(obj.GetFlatValue("value"));
-                }
 
 
                 var key = obj.GetFlatValue("key");
@@ -202,10 +253,7 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             if (obj.ContainsKey("not"))
             {
-                if (!(obj["not"] is JObject nObj))
-                {
-                    throw new FormatException("Invalid type: 'not' takes an expression");
-                }
+                if (!(obj["not"] is JObject nObj)) throw new FormatException("Invalid type: 'not' takes an expression");
 
                 var nt = CreatePredicate(nObj);
                 return attributes => !nt(attributes);
@@ -213,18 +261,13 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             if (obj.ContainsKey("and"))
             {
-                if (!(obj["and"] is JArray ands))
-                {
-                    throw new FormatException("Invalid type: 'and' takes an array");
-                }
+                if (!(obj["and"] is JArray ands)) throw new FormatException("Invalid type: 'and' takes an array");
 
                 var exprs = new List<Predicate<IEnumerable<Attribute>>>();
                 foreach (var e in ands)
                 {
                     if (!(e is JObject expr))
-                    {
                         throw new FormatException("Invalid type: 'and'-elements should be expressions");
-                    }
 
                     exprs.Add(CreatePredicate(expr));
                 }
@@ -234,18 +277,13 @@ namespace Anyways.VectorTiles.CycleNetworks
 
             if (obj.ContainsKey("or"))
             {
-                if (!(obj["or"] is JArray ands))
-                {
-                    throw new FormatException("Invalid type: 'or' takes an array");
-                }
+                if (!(obj["or"] is JArray ands)) throw new FormatException("Invalid type: 'or' takes an array");
 
                 var exprs = new List<Predicate<IEnumerable<Attribute>>>();
                 foreach (var e in ands)
                 {
                     if (!(e is JObject expr))
-                    {
                         throw new FormatException("Invalid type: 'or'-elements should be expressions");
-                    }
 
                     exprs.Add(CreatePredicate(expr));
                 }
