@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using Itinero;
 using Itinero.Logging;
 using Newtonsoft.Json.Linq;
@@ -12,19 +13,22 @@ namespace Anyways.VectorTiles.CycleNetworks
         static void Main(string[] args)
         {
             InstallLogging();
+            string routerDbPath;
+            string specPath;
+            string outputDir;
 
-            if (args.Length != 3)
+
+            if (args.Length == 3)
             {
-                Console.WriteLine("Expected argument: routerdb specification.json outputDirectory");
-                return;
+                routerDbPath = args[0];
+                specPath = args[1];
+                outputDir = args[2];
             }
-            
-            var routerDbPath = args[0];
-            var specPath = args[1];
-            var outputDir = args[2];
-            
-            Log.Information("Reading routerdb...");
-            var routerDb = RouterDb.Deserialize(File.OpenRead(routerDbPath));
+            else
+            {
+                throw new Exception($"Arguments incorrect: expected input.routerdb spec.json outputDirectory. Got {args.Length} arguments instead: {string.Join(" ", args)}");
+            }
+
 
             Log.Information("Parsing spec");
             JObject j;
@@ -32,9 +36,16 @@ namespace Anyways.VectorTiles.CycleNetworks
             {
                 j = JObject.Parse(r.ReadToEnd());
             }
+
+            Log.Information(j.ToString());
+
+
+            Log.Information("Reading routerdb...");
+            var routerDb = RouterDb.Deserialize(File.OpenRead(routerDbPath));
+
             Log.Information("Writing tiles...");
             routerDb.CreateVectorTiles(j, outputDir);
-            Log.Information("All done!");
+            Log.Information($"All done! Tiles are available in {outputDir}");
         }
 
 

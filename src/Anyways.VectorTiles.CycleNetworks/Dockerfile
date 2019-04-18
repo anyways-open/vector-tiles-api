@@ -15,6 +15,7 @@ RUN mkdir /var/app/source
 RUN mkdir /var/app/tiles
 RUN mkdir /var/app/logs
 COPY ./bin/Release/netcoreapp2.1/linux-x64/publish /var/app
+COPY vectortile.spec.json /var/app/vectortile.spec.json
 
 # couple data folder data volume.
 VOLUME ["/var/app/source"]
@@ -23,4 +24,4 @@ VOLUME ["/var/app/logs"]
 
 # Set the default command to execute when creating a new container
 WORKDIR /var/app/
-CMD ["dotnet", "Anyways.VectorTiles.CycleNetworks.dll", "/var/app/source/input.routerdb", "/var/app/tiles/"]
+CMD ["dotnet", "Anyways.VectorTiles.CycleNetworks.dll", "/var/app/source/belgium.routerdb", "/var/app/vectortile.spec.json", "/var/app/tiles/"]

@@ -98,6 +98,7 @@ namespace Anyways.VectorTiles.CycleNetworks
                 {
                     var attributes = routerDb.GetVertexAttributes(edgeId)?.ToList();
                     if (attributes == null) return null;
+                    if (attributes.Count == 0) return null;
                     // ReSharper disable once ConvertIfStatementToReturnStatement
                     if (!filter(attributes)) return null;
                     return attributes;
