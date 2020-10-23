@@ -1,6 +1,7 @@
 # vector-tiles-api
 
-[![Build status](https://build.anyways.eu/app/rest/builds/buildType:(id:anyways_Core_VectorTilesApi)/statusIcon)](https://build.anyways.eu/viewType.html?buildTypeId=anyways_Core_VectorTilesApi)  
+![Production](https://github.com/anyways-open/vector-tiles-api/workflows/Production/badge.svg)  
+![Staging](https://github.com/anyways-open/vector-tiles-api/workflows/Staging/badge.svg)  
 
 Status: **PRODUCTION**
 
