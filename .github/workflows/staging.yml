@@ -36,7 +36,7 @@ jobs:
     - name: Login to Docker Hub
       run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysopen --password-stdin
     - name: Publish the image.
-      run: docker push anywaysopen/cvector-tiles-api:staging
+      run: docker push anywaysopen/vector-tiles-api:staging
       working-directory: ./src/ANYWAYS.VectorTiles.API/
     - name: Publish the image versioned.
       run: docker push anywaysopen/vector-tiles-api:staging-0.$GITHUB_RUN_NUMBER
