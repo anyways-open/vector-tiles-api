@@ -1,0 +1,43 @@
+name: Production
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Prepare NuGet.Config
+      uses: datamonsters/replace-action@v2
+      with:
+        files: 'NuGet.Config.actions'
+        replacements: '%%username%%=xivk,%%token%%=${{ secrets.PACKAGES_SECRET }}'
+    - run: mv NuGet.Config.actions NuGet.Config 
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish project
+      run: dotnet publish -c release
+      working-directory: ./src/ANYWAYS.VectorTiles.API/
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag anywaysopen/vector-tiles-api:prod --tag anywaysopen/vector-tiles-api:prod-0.$GITHUB_RUN_NUMBER
+      working-directory: ./src/ANYWAYS.VectorTiles.API/
+    - name: Login to Docker Hub
+      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysopen --password-stdin
+    - name: Publish the image.
+      run: docker push anywaysopen/vector-tiles-api:prod
+      working-directory: ./src/ANYWAYS.VectorTiles.API/
+    - name: Publish the image versioned.
+      run: docker push anywaysopen/vector-tiles-api:prod-0.$GITHUB_RUN_NUMBER
+      working-directory: ./src/ANYWAYS.VectorTiles.API/
