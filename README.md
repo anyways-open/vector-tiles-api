@@ -6,7 +6,7 @@ Status: **PRODUCTION**
 
 The vector tiles microservice.
 
-This microservice has the responsability to generate and to serve mapbox vector tiles, reusable in different anyways applications. This API is only to used for relatively static data derived from OSM data or other sources. The prime example is cycling networks - which only update sporadically.
+This microservice has the responsibility to generate and to serve mapbox vector tiles, reusable in different anyways applications. This API is only to used for relatively static data derived from OSM data or other sources. The prime example is cycling networks - which only update sporadically.
 
 ## Architecture
 
