@@ -28,4 +28,4 @@ EXPOSE 5000
 
 # Set the default command to execute when creating a new container
 WORKDIR /var/app/
-ENTRYPOINT ["dotnet", "Anyways.VectorTiles.API.dll"]
+ENTRYPOINT ["dotnet", "ANYWAYS.VectorTiles.API.dll"]
