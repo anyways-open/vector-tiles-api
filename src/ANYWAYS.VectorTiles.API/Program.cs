@@ -6,7 +6,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 
-namespace Anyways.VectorTiles.API
+namespace ANYWAYS.VectorTiles.API
 {
     public class Program
     {

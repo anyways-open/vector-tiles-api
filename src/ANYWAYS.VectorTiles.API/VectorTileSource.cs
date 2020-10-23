@@ -1,4 +1,4 @@
-namespace Anyways.VectorTiles
+namespace ANYWAYS.VectorTiles.API
 {
     // ReSharper disable InconsistentNaming
     // ReSharper disable UnusedAutoPropertyAccessor.Global

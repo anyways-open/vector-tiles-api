@@ -1,9 +1,8 @@
 ﻿using System.IO;
-using Itinero.VectorTiles.Tiles;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace Anyways.VectorTiles.API.Controllers
+namespace ANYWAYS.VectorTiles.API.Controllers
 {
     [ApiController]
     public class TilesController : ControllerBase
@@ -30,8 +29,7 @@ namespace Anyways.VectorTiles.API.Controllers
         [HttpGet("{tileSet}/{z}/{x}/{y}.mvt")]
         public IActionResult Get(string tileSet, int z, int x, int y)
         {
-            var t = new Tile(x, y, z);
-            var tileFileInfo = new FileInfo(Path.Combine(Startup.DataPath, tileSet, t.Zoom.ToString(), t.X.ToString(), $"{t.Y}.mvt"));
+            var tileFileInfo = new FileInfo(Path.Combine(Startup.DataPath, tileSet, z.ToString(), x.ToString(), $"{y}.mvt"));
 
             if (tileFileInfo.Exists)
             {

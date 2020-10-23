@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
-namespace Anyways.VectorTiles.API
+namespace ANYWAYS.VectorTiles.API
 {
     public class Startup
     {

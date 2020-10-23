@@ -1,6 +1,4 @@
-// ReSharper disable InconsistentNaming
-// ReSharper disable UnusedAutoPropertyAccessor.Global
-namespace Anyways.VectorTiles
+namespace ANYWAYS.VectorTiles.API
 {
     public class VectorLayer
     {
