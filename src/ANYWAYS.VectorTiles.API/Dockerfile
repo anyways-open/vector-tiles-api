@@ -13,7 +13,8 @@ MAINTAINER Anyways BVBA
 RUN mkdir /var/app
 RUN mkdir /var/app/data
 RUN mkdir /var/app/logs
-COPY ./bin/Release/netcoreapp2.2/linux-x64/publish /var/app
+
+COPY ./bin/release/netcoreapp3.1/publish /var/app
 COPY appsettings.Docker.json /var/app/appsettings.json
 
 # couple data folder data volume.

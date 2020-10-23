@@ -1,44 +1,75 @@
 ﻿using System;
-using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Json;
 
 namespace ANYWAYS.VectorTiles.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            
-            var logFile = Path.Combine("logs", "log-.txt");
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-                .Enrich.FromLogContext()
-                .WriteTo.File(new JsonFormatter(), logFile, rollingInterval: RollingInterval.Day)
-                .WriteTo.Console()
-                .CreateLogger();
-            
             try
             {
-                Log.Information("Starting web host");
-                CreateWebHostBuilder(args).Build().Run();
+                var configurationBuilder = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json", true, true);
+                    
+                // get deploy time settings if present.
+                var configuration = configurationBuilder.Build();
+                var deployTimeSettings = configuration["deploy-time-settings"] ?? "/var/app/config/appsettings.json";
+                configurationBuilder = configurationBuilder
+                    .AddJsonFile(deployTimeSettings, true, true);
+
+                // get environment variable prefix.
+                configuration = configurationBuilder.Build();
+                var envVarPrefix = configuration["env-var-prefix"] ?? "CONF_";
+                configurationBuilder = configurationBuilder
+                    .AddEnvironmentVariables((c) => { c.Prefix = envVarPrefix; });
+                
+                // build configuration.
+                configuration = configurationBuilder.Build();
+
+                // setup logging.
+                Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(configuration)
+                    .CreateLogger();
+                
+                try
+                {
+                    var data = configuration["data"];
+                    
+                    var host = WebHost.CreateDefaultBuilder(args)
+                        .ConfigureServices((hostContext, services) =>
+                        {
+                            // add logging.
+                            services.AddLogging(b =>
+                            {
+                                b.AddSerilog();
+                            });
+                            
+                            // add configuration.
+                            services.AddSingleton(new StartupConfiguration()
+                            {
+                                DataPath = data
+                            });
+                        }).UseStartup<Startup>().Build();
+                    
+                    // run!
+                    await host.RunAsync();
+                }
+                catch (Exception e)
+                {
+                    Log.Logger.Fatal(e, "Unhandled exception.");
+                }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Log.Fatal(ex, "Host terminated unexpectedly");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
+                Console.WriteLine(e);
+                throw;
             }
         }
-
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
     }
 }

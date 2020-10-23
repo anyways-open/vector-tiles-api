@@ -7,10 +7,17 @@ namespace ANYWAYS.VectorTiles.API.Controllers
     [ApiController]
     public class TilesController : ControllerBase
     {
+        private readonly StartupConfiguration _configuration;
+
+        public TilesController(StartupConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+        
         [HttpGet("{tileSet}/mvt.json")]
         public IActionResult Get(string tileSet)
         {
-            var tileFileInfo = new FileInfo(Path.Combine(Startup.DataPath, tileSet, "mvt.json"));
+            var tileFileInfo = new FileInfo(Path.Combine(_configuration.DataPath, tileSet, "mvt.json"));
 
             if (!tileFileInfo.Exists) return NotFound();
             
@@ -29,7 +36,7 @@ namespace ANYWAYS.VectorTiles.API.Controllers
         [HttpGet("{tileSet}/{z}/{x}/{y}.mvt")]
         public IActionResult Get(string tileSet, int z, int x, int y)
         {
-            var tileFileInfo = new FileInfo(Path.Combine(Startup.DataPath, tileSet, z.ToString(), x.ToString(), $"{y}.mvt"));
+            var tileFileInfo = new FileInfo(Path.Combine(_configuration.DataPath, tileSet, z.ToString(), x.ToString(), $"{y}.mvt"));
 
             if (tileFileInfo.Exists)
             {
