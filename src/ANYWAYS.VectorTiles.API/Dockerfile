@@ -1,13 +1,8 @@
-############################################################
-# Dockerfile Downcount ASP.NET Core Service
-# Based on Ubuntu
-############################################################
-
 # Set the base image to Ubuntu
-FROM microsoft/dotnet:2.2-sdk
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1
 
 # File Author / Maintainer
-MAINTAINER Anyways BVBA
+MAINTAINER ANYWAYS BV
 
 # copy api assemblies and files
 RUN mkdir /var/app
