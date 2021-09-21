@@ -2,7 +2,7 @@ name: Production
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -34,7 +34,7 @@ jobs:
       run: docker build . --file Dockerfile --tag anywaysopen/vector-tiles-api:prod --tag anywaysopen/vector-tiles-api:prod-0.$GITHUB_RUN_NUMBER
       working-directory: ./src/ANYWAYS.VectorTiles.API/
     - name: Login to Docker Hub
-      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysopen --password-stdin
+      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u anywaysbot --password-stdin
     - name: Publish the image.
       run: docker push anywaysopen/vector-tiles-api:prod
       working-directory: ./src/ANYWAYS.VectorTiles.API/
