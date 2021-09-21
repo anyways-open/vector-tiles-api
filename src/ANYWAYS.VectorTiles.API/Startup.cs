@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using ANYWAYS.Tools.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -15,7 +16,19 @@ namespace ANYWAYS.VectorTiles.API
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {            
+        {         
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: "CORS",
+                    builder =>
+                    {
+                        builder.AllowAnyHeader()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowAnyOrigin();
+                    });
+            });
+            
             services.AddMvc();
         }
 
@@ -34,28 +47,10 @@ namespace ANYWAYS.VectorTiles.API
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
             
-            app.UseForwardedHeaders(options);
-            app.Use((context, next) => 
-            {
-                if (context.Request.Headers.TryGetValue("X-Forwarded-PathBase", out var pathBases))
-                {
-                    context.Request.PathBase = pathBases.First();
-                    if (context.Request.PathBase.Value.EndsWith("/"))
-                    {
-                        context.Request.PathBase =
-                            context.Request.PathBase.Value.Substring(0, context.Request.PathBase.Value.Length - 1);
-                    }
-                    if (context.Request.Path.Value.StartsWith(context.Request.PathBase.Value))
-                    {
-                        var before = context.Request.Path.Value;
-                        var after = context.Request.Path.Value.Substring(
-                            context.Request.PathBase.Value.Length,
-                            context.Request.Path.Value.Length - context.Request.PathBase.Value.Length);
-                        context.Request.Path = after;
-                    }
-                }
-                return next();
-            });
+            app.UseCors("CORS");
+            
+            // add support for the proxy headers.
+            app.UseForwardedNGINXHeaders();
             
             app.UseRouting();
 
