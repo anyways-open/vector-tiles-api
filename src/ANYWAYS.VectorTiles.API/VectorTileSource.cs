@@ -6,6 +6,8 @@ namespace ANYWAYS.VectorTiles.API
     {
         public string[]? tiles { get; set; }
 
+        public string? type { get; set; }
+
         public int minzoom { get; set; }
 
         public int maxzoom { get; set; }
